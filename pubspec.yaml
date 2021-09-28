@@ -39,6 +39,7 @@ dependencies:
       url: git@github.com:Rexios80/flutter_blue.git
       ref: 478e42d6b90f1b5ffb30a94236555d0f377553cc
   avatar_glow: ^2.0.1
+  flutter_ble_peripheral: ^0.5.0+1
 
 dev_dependencies:
   flutter_test:
