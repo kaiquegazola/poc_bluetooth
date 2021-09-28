@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:poc_bluetooth/connect/connect_page.dart';
-import 'package:poc_bluetooth/host/host_page.dart';
+
+import 'connect/connect_page.dart';
+import 'host/host_page.dart';
 
 void main() {
   runApp(const MyApp());

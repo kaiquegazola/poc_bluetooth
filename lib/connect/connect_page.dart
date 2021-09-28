@@ -37,7 +37,11 @@ class _ConnectPageState extends State<ConnectPage> {
                     ElevatedButton(
                       onPressed: () {
                         flutterBlue.startScan(
-                            timeout: const Duration(seconds: 30));
+                          timeout: const Duration(seconds: 15),
+                          withServices: <Guid>[
+                            Guid('6f67019a-928f-4c0c-9bb8-08beaecf7221'),
+                          ],
+                        );
                         status.add('Scanning...');
                       },
                       child: const Text('Start Scan'),
@@ -114,6 +118,21 @@ class _ConnectPageState extends State<ConnectPage> {
                   onPressed: selectedDevice != null ? () {} : null,
                   child: const Text('Send data'),
                 ),
+                StreamBuilder<List<BluetoothDevice>>(
+                  stream: flutterBlue.connectedDevices.asStream(),
+                  initialData: const <BluetoothDevice>[],
+                  builder: (BuildContext context,
+                      AsyncSnapshot<List<BluetoothDevice>> snapshot) {
+                    return Column(
+                      children: <Widget>[
+                        ...snapshot.data!
+                            .map((BluetoothDevice e) =>
+                                Text('${deviceName(e)} - Connected'))
+                            .toList()
+                      ],
+                    );
+                  },
+                )
               ],
             ),
           ),
@@ -169,16 +188,31 @@ class _ConnectPageState extends State<ConnectPage> {
       final String name = deviceName(device);
       if (!await deviceConnected(device)) {
         status.add('Connecting to $name...');
-        return device.connect().then((void v) async {
-          final bool connected = await deviceConnected(device);
-          status.add(
-            connected ? 'Connected to $name.' : 'Failed to connect in $name.',
-          );
-        });
+        await device.connect();
+        final bool connected = await deviceConnected(device);
+        if (connected) {
+          status.add('Connected to $name.');
+          // verifyService(device);
+        } else {
+          status.add('Failed to connect in $name.');
+        }
       }
       status.add('Already connected to $name');
     } catch (e) {
       status.add('error in connect device: $e');
+    }
+  }
+
+  Future<void> verifyService(BluetoothDevice device) async {
+    final String name = deviceName(device);
+    status.add('Finding services of $name...');
+    final List<BluetoothService> services = await device.discoverServices();
+    if (services.any((BluetoothService element) =>
+        element.uuid.toString() == '6f67019a-928f-4c0c-9bb8-08beaecf7221')) {
+      status.add('Service stabled successful!');
+    } else {
+      status.add("$name doesn't have desired service...");
+      device.disconnect();
     }
   }
 
